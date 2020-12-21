@@ -1,0 +1,134 @@
+#format: sh
+#
+#  problemseqsetload.config.default
+#
+#  This file sets up environment variables that are needed for 
+#  the Problem Alignment Sequences setload
+#
+###########################################################################
+
+###########################################################################
+#
+#  GENERAL SETTINGS
+#
+###########################################################################
+
+#
+#  If the MGICONFIG environment variable does not have a local override,
+#  use the default "live" settings.
+#
+if [ "${MGICONFIG}" = "" ]
+then
+    MGICONFIG=/usr/local/mgi/live/mgiconfig
+    export MGICONFIG
+fi
+
+. ${MGICONFIG}/master.config.sh
+
+###########################################################################
+#
+#  LOAD SPECIFIC SETTINGS
+#
+###########################################################################
+
+
+#  SET Load Script
+SETLOAD_CSH=${SETLOAD}/setload.csh
+
+CONFIG_SETLOAD=${PROBLEMSEQSETLOAD}/setload.config
+
+export SETLOAD_CSH CONFIG_SETLOAD
+
+
+#  Path name of the archive, logs, reports and output directories
+FILEDIR=${DATALOADSOUTPUT}/mgi/problemseqsetload
+ARCHIVEDIR=${FILEDIR}/archive
+LOGDIR=${FILEDIR}/logs
+RPTDIR=${FILEDIR}/reports
+OUTPUTDIR=${FILEDIR}/output
+INPUTDIR=${FILEDIR}/input
+
+export FILEDIR ARCHIVEDIR LOGDIR RPTDIR OUTPUTDIR INPUTDIR
+
+# Full path to the default input file.
+# This is where the publish script places the file
+INPUT_FILE_DEFAULT=${INPUTDIR}/problemseqsetload.txt
+INPUT_FILE_SET=${INPUTDIR}/setloadinput.txt
+
+export INPUT_FILE_DEFAULT INPUT_FILE_SET
+
+# Full path to the "cleaned up" QC-ready input file that is created and used
+# by the sanity/QC report script.
+#
+INPUT_FILE_QC=${OUTPUTDIR}/problemseqsetload_qc.txt
+
+export INPUT_FILE_QC
+
+# Full path to the bcp file for loading the input file into the temp table.
+#
+INPUT_FILE_BCP=${OUTPUTDIR}/load_temp.bcp
+
+export INPUT_FILE_BCP
+
+# Full path to the  sanity/QC log.
+#
+LOADQC_LOGFILE=${LOGDIR}/problemseqsetQC.log
+
+export LOADQC_LOGFILE 
+
+# Full path to the sanity/QC reports.
+#
+SANITY_RPT=${RPTDIR}/sanity.rpt
+INVALID_SEQUENCE_RPT=${RPTDIR}/invalid_sequence.rpt
+SEC_SEQUENCE_RPT=${RPTDIR}/secondary_sequence.rpt
+
+export SANITY_RPT
+export INVALID_SEQUENCE_RPT SEC_SEQUENCE_RPT 
+
+# Number of columns expected for the input file (for sanity check).
+#
+FILE_COLUMNS=1
+
+export FILE_COLUMNS
+
+# Temp table that will be loaded from the input file.
+
+TEMP_TABLE=PSSLoad
+
+export TEMP_TABLE
+
+
+# Full path to QC/sanity scripts.
+#
+LOAD_QC=${PROBLEMSEQSETLOAD}/bin/pssQC.py
+LOAD_QC_SH=${PROBLEMSEQSETLOAD}/bin/pssQC.sh
+
+export LOAD_QC LOAD_QC_SH
+
+# Complete path name of the problemseqsetload log files
+LOG_FILE=${LOGDIR}/pssload.log
+LOG_PROC=${LOGDIR}/pssload.proc.log
+LOG_DIAG=${LOGDIR}/pssload.diag.log
+LOG_CUR=${LOGDIR}/pssload.cur.log
+LOG_VAL=${LOGDIR}/pssload.val.log
+
+export LOG_FILE LOG_PROC LOG_DIAG LOG_CUR LOG_VAL
+
+#  The name of the job stream for the load
+JOBSTREAM=problemseqsetload
+
+export JOBSTREAM
+
+###########################################################################
+#
+#  MISCELLANEOUS SETTINGS
+#
+###########################################################################
+
+#  The name of the load for the subject of an email notification
+MAIL_LOADNAME="Problem Alignment Sequences Set Load"
+
+export MAIL_LOADNAME
+
+INSTALLDIR=${PROBLEMSEQSETLOAD}
+export INSTALLDIR
