@@ -108,7 +108,6 @@ def checkArgs ():
         sys.exit(1)
 
     inputFile = sys.argv[1]
-    print('inputFile: %s' % inputFile)
 
 
 #
@@ -206,7 +205,6 @@ def loadTempTable ():
     line  = fpInput.readline()
     while line:
     #for line in fpInput.readlines():
-        print('seqId: %s' % line)
         seqID  = str.strip(line)
 
         # write out to the bcp file:

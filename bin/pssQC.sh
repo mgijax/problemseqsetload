@@ -89,19 +89,10 @@ then
 else
     echo ${USAGE}; exit 1
 fi
-echo "INPUT_FILE: ${INPUT_FILE}"
-echo "$0"
-echo `basename $0`
-echo "after echoing basename $0"
 #
 # Create a temporary file and make sure that it is removed when this script
 # terminates.
 #
-#filename=`basename $0`
-#echo "filename: ${filename}"
-#pid=$$
-#TMP_FILE="/tmp/$filename.$pid"
-#echo $TMP_FILE
 echo 'creating temp file'
 TMP_FILE=/tmp/`basename $0`.$$
 touch ${TMP_FILE}
