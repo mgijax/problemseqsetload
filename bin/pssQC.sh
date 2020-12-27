@@ -250,8 +250,8 @@ then
     RC=1
 elif [ `cat ${TMP_FILE}` -eq 2 ]
 then
-    echo "Non fatal errors Secondary Sequence ID(s) see ${SEC_SEQUENCE_RPT}" | tee -a ${LOG}
-    RC=0
+    echo "Fatal errors Secondary Sequence ID(s) see ${SEC_SEQUENCE_RPT}" | tee -a ${LOG}
+    RC=1
 elif [ `cat ${TMP_FILE}` -eq 3 ]
 then
     echo "Fatal errors Invalid Sequence ID(s) see ${INVALID_SEQUENCE_RPT}" | tee -a ${LOG}

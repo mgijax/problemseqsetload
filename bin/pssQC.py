@@ -87,11 +87,11 @@ BCP_COMMAND = os.environ['PG_DBUTILS'] + '/bin/bcpin.csh'
 
 timestamp = mgi_utils.date()
 
-# current number of fatal errors
-fatalCount = 0
-
-# current number of nonfatal errors
-nonfatalCount = 0
+# current number of errors
+invalidCount = 0
+secondaryCount = 0
+# secondary to primary refseq/genbank
+secondaryToPrimaryDict = {}
 
 #
 # Purpose: Validate the arguments to the script.
@@ -128,7 +128,22 @@ def init ():
     openFiles()
     loadTempTable()
 
-    # query for invalid seqIds
+    results = db.sql('''select distinct a1.accid as secondary, a2.accid as primary
+        from ACC_Accession a1, ACC_Accession a2
+        where  a1._MGIType_key = 19 
+        and a1._LogicalDB_key in (9, 27) 
+        and a1.preferred = 0
+        and a1._object_key = a2._object_key
+        and a2._MGIType_key = 19 
+        and a2._LogicalDB_key in (9, 27)
+        and a2.preferred = 1''', 'auto')
+    for r in results:
+        s = r['secondary']
+        p = r['primary']
+        if s not in secondaryToPrimaryDict:
+            secondaryToPrimaryDict[s] = []
+        secondaryToPrimaryDict[s].append(p)
+
 #
 # Purpose: Open the files.
 # Returns: Nothing
@@ -241,13 +256,13 @@ def loadTempTable ():
 # Throws: Nothing
 #
 def createSecSeqReport ():
-    global nonfatalCount
+    global secondaryCount
     print('Create the secondary sequence report')
     sys.stdout.flush()
     fpSecSeqRpt.write(str.center('Secondary Sequence Report',80) + CRT)
     fpSecSeqRpt.write(str.center('(' + timestamp + ')',80) + 2*CRT)
-    fpSecSeqRpt.write('%-20s %s' % ('Sequence ID', CRT))
-    fpSecSeqRpt.write(20*'-' + CRT)
+    fpSecSeqRpt.write('%-20s %-20s %s' % ('Secondary ID','Primary ID', CRT))
+    fpSecSeqRpt.write(40*'-' + CRT)
 
     cmds = []
 
@@ -255,7 +270,7 @@ def createSecSeqReport ():
     # Find any sequences from the input data that are secondary IDs
     #
     cmds.append('''
-        select tmp.seqID
+        select distinct tmp.seqID
         from %s tmp, 
                      ACC_Accession a1
         where tmp.seqID is not null and 
@@ -263,7 +278,7 @@ def createSecSeqReport ():
                       a1._MGIType_key = 19 and 
                       a1._LogicalDB_key in (9, 27) and 
                       a1.preferred = 0 
-        order by lower(tmp.seqID)
+        order by tmp.seqID
         ''' % (tempTable))
 
     results = db.sql(cmds,'auto')
@@ -273,13 +288,15 @@ def createSecSeqReport ():
     #
     for r in results[0]:
         seqID = r['seqID']
+        pIdList = []
+        if seqID in secondaryToPrimaryDict:
+            pIdList = secondaryToPrimaryDict[seqID]
 
-        fpSecSeqRpt.write('%-20s %s' %
-            (seqID, CRT))
-
+        fpSecSeqRpt.write('%-20s %-20s %s' %
+            (seqID, ', '.join(pIdList), CRT))
     numErrors = len(results[0])
     fpSecSeqRpt.write(CRT + 'Number of Rows: ' + str(numErrors) + CRT)
-    nonfatalCount += numErrors
+    secondaryCount += numErrors
 
 
 #
@@ -290,7 +307,7 @@ def createSecSeqReport ():
 # Throws: Nothing
 #
 def createInvSeqIdReport ():
-    global fatalCount
+    global invalidCount
 
     print('Create the invalid Sequence ID report')
     sys.stdout.flush()
@@ -327,7 +344,7 @@ def createInvSeqIdReport ():
 
     numErrors = len(results[0])
     fpInvSeqRpt.write(CRT + 'Number of Rows: ' + str(numErrors) + CRT)
-    fatalCount += numErrors
+    invalidCount += numErrors
 
 def createSetFile():
     print('creating set file')
@@ -355,10 +372,10 @@ if liveRun == "1":
     createSetFile()
 
 db.useOneConnection(0)
-# START HERE - report whether fatal or non-fatal to command line.
-if fatalCount > 0: # fatal errors
+
+if invalidCount > 0: # fatal errors
     sys.exit(3)
-elif nonfatalCount > 0:
+elif secondaryCount > 0:
     sys.exit(2)
 else:
     sys.exit(0)
